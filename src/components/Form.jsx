@@ -8,7 +8,20 @@ import {
   Link,
   Box,
   Divider,
+  Modal,
 } from '@mui/material';
+
+const modalStyle = {
+  position: 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: 400,
+  bgcolor: 'background.paper',
+  borderRadius: '15px',
+  boxShadow: 24,
+  p: 4,
+};
 
 function Form() {
   const [formData, setFormData] = useState({
@@ -21,6 +34,9 @@ function Form() {
   });
 
   const [errors, setErrors] = useState({});
+  const [open, setOpen] = useState(false);
+  const [modalEmail, setModalEmail] = useState('');
+  const [modalEmailError, setModalEmailError] = useState('');
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -41,19 +57,38 @@ function Form() {
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
     } else {
-      // Submit the form
+      setOpen(true);
     }
+  };
+
+  const handleSend = () => {
+    if (!modalEmail) {
+      setModalEmailError('Email is required');
+      return;
+    }
+
+    const currentDate = new Date();
+    const formattedDate = `${currentDate.getDate()}/${currentDate.getMonth() + 1}/${currentDate.getFullYear()} ${currentDate.getHours()}:${currentDate.getMinutes()}`;
+
+    const dataToSend = {
+      ...formData,
+      sentAt: formattedDate,
+    };
+
+    console.log(`Sending data to ${modalEmail}:`, dataToSend);
+    // Здесь вы можете добавить логику для отправки данных на email
+
+    setOpen(false);
   };
 
   return (
     <Container
-      maxWidth="lg"
+      maxWidth="md"
       sx={{
         minHeight: '100vh',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        px: { xs: 2, sm: 3, md: 4 },
       }}
     >
       <Box
@@ -62,7 +97,7 @@ function Form() {
           borderRadius: '15px',
           boxShadow: 'rgba(140, 152, 164, 0.125) 0px 6px 24px 0px',
           p: 4,
-          maxWidth: '1280px',
+          maxWidth: '895px',
           width: '100%',
           pb: 4,
         }}
@@ -83,7 +118,8 @@ function Form() {
               color: 'rgb(103, 119, 136)',
             }}
           >
-            Please read our <Link href="/terms">terms of use</Link> to be
+            Please read our{' '}
+            <Link href="https://www.google.com">terms of use</Link> to be
             informed how we manage your private data.
           </Typography>
           <Box
@@ -300,7 +336,7 @@ function Form() {
               >
                 You may also consider to update your{' '}
                 <Link
-                  href="/billing"
+                  href="https://www.google.com"
                   sx={{
                     margin: 0,
                     fontFamily: 'inherit',
@@ -346,12 +382,74 @@ function Form() {
                   fontWeight: 400,
                   borderRadius: '5px',
                 }}
+                onClick={handleSubmit}
               >
                 Save
               </Button>
             </Grid>
           </Grid>
         </form>
+        <Modal
+          open={open}
+          onClose={() => setOpen(false)}
+          aria-labelledby="modal-modal-title"
+          aria-describedby="modal-modal-description"
+        >
+          <Box sx={modalStyle}>
+            <Typography variant="h6" component="h2" gutterBottom>
+              Enter the email to send the data
+            </Typography>
+            <TextField
+              fullWidth
+              label="Email"
+              name="modalEmail"
+              value={modalEmail}
+              onChange={(e) => {
+                setModalEmail(e.target.value);
+                setModalEmailError('');
+              }}
+              error={!!modalEmailError}
+              helperText={modalEmailError}
+              sx={{
+                borderRadius: '5px',
+                marginBottom: '16px',
+              }}
+            />
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleSend}
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxSizing: 'border-box',
+                outline: 0,
+                border: 0,
+                margin: 0,
+                cursor: 'pointer',
+                userSelect: 'none',
+                verticalAlign: 'middle',
+                textDecoration: 'none',
+                textTransform: 'none',
+                fontFamily: 'Inter, sans-serif',
+                fontSize: '0.9375rem',
+                lineHeight: 1.75,
+                minWidth: '64px',
+                padding: '10px 22px',
+                transition:
+                  'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms',
+                color: 'rgb(255, 255, 255)',
+                backgroundColor: 'rgb(55, 125, 255)',
+                boxShadow: 'rgba(140, 152, 164, 0.1) 0px 12px 15px',
+                fontWeight: 400,
+                borderRadius: '5px',
+              }}
+            >
+              Send
+            </Button>
+          </Box>
+        </Modal>
       </Box>
     </Container>
   );
