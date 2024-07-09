@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Container,
   Grid,
@@ -12,37 +12,27 @@ import {
 } from '@mui/material';
 import emailjs from '@emailjs/browser';
 
-function Form() {
-  const [formData, setFormData] = useState({
-    firstName: '',
-    email: '',
-    bio: '',
-    country: '',
-    city: '',
-    address: '',
-  });
-  const [recipientEmail, setRecipientEmail] = useState('');
-  const [errors, setErrors] = useState({});
-  const [modalOpen, setModalOpen] = useState(false);
-  const [notification, setNotification] = useState('');
-  const [notificationType, setNotificationType] = useState('');
+const initialFormData = {
+  firstName: '',
+  email: '',
+  bio: '',
+  country: '',
+  city: '',
+  address: '',
+};
 
-  useEffect(() => {
-    if (notification) {
-      const timer = setTimeout(() => {
-        setNotification('');
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-    return undefined;
-  }, [notification]);
+function Form() {
+  const [formData, setFormData] = useState(initialFormData);
+  const [errors, setErrors] = useState({});
+  const [recipientEmail, setRecipientEmail] = useState('');
+  const [modalOpen, setModalOpen] = useState(false);
+  const [notification, setNotification] = useState({
+    message: '',
+    success: null,
+  });
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleRecipientEmailChange = (e) => {
-    setRecipientEmail(e.target.value);
   };
 
   const validate = () => {
@@ -72,7 +62,7 @@ function Form() {
       country: formData.country,
       city: formData.city,
       address: formData.address,
-      sentAt: new Date().toLocaleString('ru-RU', {
+      sent_at: new Date().toLocaleString('ru-RU', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',
@@ -92,14 +82,22 @@ function Form() {
       .then(
         (response) => {
           console.log('SUCCESS!', response.status, response.text);
-          setNotification('Email sent successfully!');
-          setNotificationType('success');
+          setNotification({
+            message: 'Email sent successfully!',
+            success: true,
+          });
+          setFormData(initialFormData);
+          setTimeout(() => {
+            setNotification({ message: '', success: null });
+          }, 5000);
           setModalOpen(false);
         },
         (error) => {
           console.log('FAILED...', error);
-          setNotification('Failed to send email.');
-          setNotificationType('error');
+          setNotification({ message: 'Failed to send email.', success: false });
+          setTimeout(() => {
+            setNotification({ message: '', success: null });
+          }, 5000);
         },
       );
   };
@@ -123,8 +121,25 @@ function Form() {
           maxWidth: '895px',
           width: '100%',
           pb: 4,
+          position: 'relative',
         }}
       >
+        {notification.message && (
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bgcolor: notification.success ? 'green' : 'red',
+              color: 'white',
+              p: 2,
+              textAlign: 'center',
+            }}
+          >
+            {notification.message}
+          </Box>
+        )}
         <form onSubmit={handleSubmit} style={{ height: '100%' }}>
           <Typography variant="h5" gutterBottom>
             Change your private information
@@ -141,7 +156,8 @@ function Form() {
               color: 'rgb(103, 119, 136)',
             }}
           >
-            Please read our <Link href="/terms">terms of use</Link> to be
+            Please read our{' '}
+            <Link href="https://www.google.ru/">terms of use</Link> to be
             informed how we manage your private data.
           </Typography>
           <Box
@@ -358,7 +374,7 @@ function Form() {
               >
                 You may also consider to update your{' '}
                 <Link
-                  href="/billing"
+                  href="https://www.google.ru/"
                   sx={{
                     margin: 0,
                     fontFamily: 'inherit',
@@ -396,8 +412,6 @@ function Form() {
                   lineHeight: 1.75,
                   minWidth: '64px',
                   padding: '10px 22px',
-                  transition:
-                    'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms',
                   color: 'rgb(255, 255, 255)',
                   backgroundColor: 'rgb(55, 125, 255)',
                   boxShadow: 'rgba(140, 152, 164, 0.1) 0px 12px 15px',
@@ -410,36 +424,33 @@ function Form() {
             </Grid>
           </Grid>
         </form>
-      </Box>
-
-      <Modal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-      >
-        <Box
-          sx={{
-            backgroundColor: 'white',
-            borderRadius: '15px',
-            boxShadow: 'rgba(140, 152, 164, 0.125) 0px 6px 24px 0px',
-            p: 4,
-            maxWidth: '400px',
-            width: '100%',
-            margin: 'auto',
-            marginTop: '10%',
-          }}
-        >
-          <Typography variant="h6" gutterBottom>
-            Enter Recipient Email
-          </Typography>
-          <TextField
-            fullWidth
-            label="Recipient Email"
-            value={recipientEmail}
-            onChange={handleRecipientEmailChange}
-          />
-          <Box mt={2} display="flex" justifyContent="flex-end">
+        <Modal open={modalOpen} onClose={() => setModalOpen(false)}>
+          <Box
+            sx={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              bgcolor: 'background.paper',
+              border: '2px solid #000',
+              boxShadow: 24,
+              p: 4,
+              borderRadius: '15px',
+            }}
+          >
+            <Typography variant="h6" component="h2">
+              Enter recipient email
+            </Typography>
+            <TextField
+              fullWidth
+              label="Recipient Email"
+              value={recipientEmail}
+              onChange={(e) => setRecipientEmail(e.target.value)}
+              sx={{
+                marginTop: 2,
+                marginBottom: 2,
+              }}
+            />
             <Button
               variant="contained"
               color="primary"
@@ -448,27 +459,8 @@ function Form() {
               Send
             </Button>
           </Box>
-        </Box>
-      </Modal>
-
-      {notification && (
-        <Box
-          sx={{
-            position: 'fixed',
-            top: '20px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            backgroundColor: notificationType === 'success' ? 'green' : 'red',
-            color: 'white',
-            borderRadius: '5px',
-            boxShadow: 'rgba(140, 152, 164, 0.125) 0px 6px 24px 0px',
-            p: 2,
-            zIndex: 9999,
-          }}
-        >
-          <Typography variant="body1">{notification}</Typography>
-        </Box>
-      )}
+        </Modal>
+      </Box>
     </Container>
   );
 }
